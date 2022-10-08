@@ -3,8 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/sha256"
-	"fmt"
-	"go-testspace/kubernetes"
+	goch "go-testspace/go-challenges"
 	"strconv"
 	"time"
 )
@@ -50,16 +49,20 @@ func NewBlockchain() *Blockchain {
 
 func main() {
 
-	kubernetes.Interact()
-	bc := NewBlockchain()
+	// kubernetes.Interact()
+	// bc := NewBlockchain()
 
-	bc.AddBlock("Send 1 BTC to Ivan")
-	bc.AddBlock("Send 2 more BTC to Ivan")
+	goch.C1()
+	goch.C2()
+	goch.C3()
 
-	for _, block := range bc.blocks {
-		fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
-		fmt.Printf("Data: %s\n", block.Data)
-		fmt.Printf("Hash: %x\n", block.Hash)
-		fmt.Println()
-	}
+	// bc.AddBlock("Send 1 BTC to Ivan")
+	// bc.AddBlock("Send 2 more BTC to Ivan")
+
+	// for _, block := range bc.blocks {
+	// 	fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
+	// 	fmt.Printf("Data: %s\n", block.Data)
+	// 	fmt.Printf("Hash: %x\n", block.Hash)
+	// 	fmt.Println()
+	// }
 }
