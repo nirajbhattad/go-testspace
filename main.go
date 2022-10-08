@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"go-testspace/kubernetes"
 	"strconv"
 	"time"
 )
@@ -48,6 +49,8 @@ func NewBlockchain() *Blockchain {
 }
 
 func main() {
+
+	kubernetes.Interact()
 	bc := NewBlockchain()
 
 	bc.AddBlock("Send 1 BTC to Ivan")
