@@ -56,11 +56,12 @@ func main() {
 	goch.OverrideInterfaceFunction()
 	goch.ImplementOverrideSortFunction()
 	goch.FindUnique()
+	goch.StackImplementation()
 
-	// K8's Section
+	// // K8's Section
 	kubernetes.Interact()
 
-	// Blockchain's Section
+	// // Blockchain's Section
 	bc := NewBlockchain()
 	bc.AddBlock("Send 1 BTC to Ivan")
 	bc.AddBlock("Send 2 more BTC to Ivan")
