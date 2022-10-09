@@ -57,6 +57,8 @@ func main() {
 	goch.ImplementOverrideSortFunction()
 	goch.FindUnique()
 	goch.StackImplementation()
+	goch.QueueImplementation()
+	goch.MinMax()
 
 	// // K8's Section
 	kubernetes.Interact()
