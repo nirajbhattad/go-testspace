@@ -19,7 +19,7 @@ func (e Engineer) Age() int {
 	return 25
 }
 
-func C2() {
+func OverrideInterfaceFunction() {
 	// This will throw an error
 	var programmers []Employee
 	elliot := Engineer{Name: "Elliot"}

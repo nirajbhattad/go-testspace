@@ -36,7 +36,7 @@ func SortByPrice(flights []Flight) []Flight {
 	return flights
 }
 
-func C3() {
+func ImplementOverrideSortFunction() {
 	flights := []Flight{
 		{Price: 30},
 		{Price: 20},

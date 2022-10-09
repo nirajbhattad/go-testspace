@@ -17,7 +17,7 @@ func GetDeveloper(name interface{}, age interface{}) Developer {
 	return dev
 }
 
-func C1() {
+func ImplementTypeInterface() {
 	fmt.Println("Hello World")
 
 	var name interface{} = "Elliot"
