@@ -20,11 +20,8 @@ func (e Engineer) Age() int {
 }
 
 func OverrideInterfaceFunction() {
-	// This will throw an error
 	var programmers []Employee
 	elliot := Engineer{Name: "Elliot"}
-	// Engineer does not implement the Employee interface
-	// you'll need to implement Age() and Random()
 	programmers = append(programmers, elliot)
 	fmt.Println(programmers)
 }
