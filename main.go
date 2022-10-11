@@ -59,6 +59,7 @@ func main() {
 	goch.StackImplementation()
 	goch.QueueImplementation()
 	goch.MinMax()
+	goch.CheckPermutations()
 
 	// // K8's Section
 	kubernetes.Interact()

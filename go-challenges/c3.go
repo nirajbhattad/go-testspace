@@ -11,7 +11,6 @@ type Flight struct {
 	Price       int
 }
 
-// Define a struct of type Flight
 type ByPrice []Flight
 
 // Overrides the sort method by implementing the three defined functions
