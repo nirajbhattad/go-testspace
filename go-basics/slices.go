@@ -1,6 +1,10 @@
 package gobasics
 
-import "fmt"
+import (
+	"fmt"
+
+	"golang.org/x/tour/pic"
+)
 
 /*
  References:
@@ -27,8 +31,15 @@ import "fmt"
 	Ex: s[1:5] is valid in the above example.
 */
 
-// PlayWithSlices
 func PlayWithSlices() {
+	playWithSlicesEx1()
+	playWithSlicesEx2()
+	pic.Show(printSlicesPicture)
+
+}
+
+// PlayWithSlices
+func playWithSlicesEx1() {
 
 	s := []int{2, 3, 5, 7, 11, 13} // Slice is a pointer to the underlying array
 	printSlice(s)
@@ -53,7 +64,7 @@ func PlayWithSlices() {
 }
 
 // playWithSlices
-func playWithSlices() {
+func playWithSlicesEx2() {
 	myArray := [6]int{2, 3, 5, 7, 11, 13}
 
 	y := myArray[:] // No Bounds Specified, defaults to original array
@@ -97,6 +108,32 @@ func playWithSlices() {
 	fmt.Printf("myArray len %d\tcap %d\tvalue %v\n\n", len(myArray), cap(myArray), myArray)
 	// y       len 1	cap 1	value [200]
 	// myArray len 6	cap 6	value [2 3 5 7 11 200]
+}
+
+// printSlicesPicture
+func printSlicesPicture(dx, dy int) [][]uint8 {
+	p := make([][]uint8, dy)
+
+	// Init
+	for i := range p {
+		p[i] = make([]uint8, dx)
+	}
+
+	// Sample
+	for y := range p {
+		for x := range p[y] {
+			p[y][x] = (uint8(x) * uint8(y))
+		}
+	}
+
+	// Sample
+	for y := range p {
+		for x := range p[y] {
+			p[y][x] = (uint8(x) * uint8(y))
+		}
+	}
+
+	return p
 }
 
 func printSlice(s []int) {

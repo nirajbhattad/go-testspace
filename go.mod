@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/hbollon/go-edlib v1.6.0
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
+	golang.org/x/tour v0.1.0
 	k8s.io/api v0.25.2
 	k8s.io/apimachinery v0.25.2
 	k8s.io/client-go v0.25.2

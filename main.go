@@ -23,7 +23,12 @@ func main() {
 	goch.ClosestMatch()
 	goch.TestMarshalJson()
 	goch.DebugRedaction()
+
+	// Basics Section
+
 	gobcs.PlayWithPointers()
+	gobcs.PlayWithSlices()
+	gobcs.PlayWithMaps()
 
 	// K8's Section
 	kubernetes.Interact()
