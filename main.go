@@ -2,6 +2,7 @@ package main
 
 import (
 	"go-testspace/blockchain"
+	gobcs "go-testspace/go-basics"
 	goch "go-testspace/go-challenges"
 	"go-testspace/kubernetes"
 )
@@ -19,7 +20,10 @@ func main() {
 	goch.CheckPermutations()
 	goch.SingleLinkedList()
 	goch.PlayWithSyncMap()
-	goch.MaskingRedaction()
+	goch.ClosestMatch()
+	goch.TestMarshalJson()
+	goch.DebugRedaction()
+	gobcs.PlayWithPointers()
 
 	// K8's Section
 	kubernetes.Interact()

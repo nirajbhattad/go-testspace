@@ -15,6 +15,7 @@ type Lock struct {
 	LastUsed int64
 }
 
+// PlayWithSyncMap
 func PlayWithSyncMap() {
 	var wg sync.WaitGroup
 	// Initialize
