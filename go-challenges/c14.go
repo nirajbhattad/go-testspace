@@ -17,7 +17,7 @@ type JsonRedact struct {
 }
 
 type XmlRedact struct {
-	Height float32 `xml:"height" redact:""`
+	Height float32 `redact:""`
 }
 
 type RedactError struct {
@@ -37,20 +37,20 @@ func DebugRedaction() {
 	// xml struct pointer
 	xmlRedact := &XmlRedact{Height: 5.5}
 
-	errorMessage := RedactError{Msg: "Unimplemented Type"}
-	print, _ := json.Marshal(errorMessage)
-	fmt.Println(string(print))
+	// errorMessage := RedactError{Msg: "Unimplemented Type"}
+	// print, _ := json.Marshal(errorMessage)
+	// fmt.Println(string(print))
 
-	var tempInt interface{}
-	json.Unmarshal([]byte("{'RedactError':'Unimplemented Type'}"), &tempInt)
-	fmt.Println(tempInt)
+	// var tempInt interface{}
+	// json.Unmarshal([]byte("{'RedactError':'Unimplemented Type'}"), &tempInt)
+	// fmt.Println(tempInt)
 
-	redactedXml := RedactToXML(xmlRedact)
+	redactedXml := PrintXML(xmlRedact)
 	fmt.Println(string(redactedXml))
 }
 
 // redact as json string
-func RedactToJson(v interface{}) string {
+func Print(v interface{}) string {
 	val := reflect.ValueOf(v)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
@@ -67,7 +67,7 @@ func RedactToJson(v interface{}) string {
 }
 
 // redact as XML string
-func RedactToXML(v interface{}) string {
+func PrintXML(v interface{}) string {
 	val := reflect.ValueOf(v)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()

@@ -40,6 +40,13 @@ Maps are often used for shared state
 Maps are more complex structures
 Maps move things
 Go’s map is a hashmap - Hash function needs to be stable, distribution and collision resistant(avoiding poor distribution).
+
+References:
+1) https://rmoff.net/2020/06/29/learning-golang-some-rough-notes-s01e03-maps/
+2) https://www.callicoder.com/golang-maps/
+3) https://dave.cheney.net/2017/04/30/if-a-map-isnt-a-reference-variable-what-is-it
+4) https://dave.cheney.net/2015/12/07/are-go-maps-sensitive-to-data-races
+5) https://dave.cheney.net/2018/05/29/how-the-go-runtime-implements-maps-efficiently-without-generics
 */
 func PlayWithMaps() {
 
