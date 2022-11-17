@@ -14,6 +14,7 @@ type JsonRedact struct {
 	Password   string `json:"password" redact:""`
 	Address    string `json:"address"`
 	AccountNum int    `json:"accountNum" redact:""`
+	Accounts   []int  `json:"accounts" redact:""`
 }
 
 type XmlRedact struct {
@@ -25,28 +26,24 @@ type RedactError struct {
 }
 
 func DebugRedaction() {
-
+	// // json struct pointer
 	// redactJson := JsonRedact{
-	// 	SSN:        "123456789",
-	// 	UserName:   "Mounika",
-	// 	Password:   "123456789",
-	// 	Address:    "123456789",
-	// 	AccountNum: 1234567,
-	// } // json struct pointer
 
-	// xml struct pointer
-	xmlRedact := &XmlRedact{Height: 5.5}
+	// 	Accounts: []int{1, 2, 3, 4},
+	// }
 
-	// errorMessage := RedactError{Msg: "Unimplemented Type"}
-	// print, _ := json.Marshal(errorMessage)
-	// fmt.Println(string(print))
+	// // // xml struct pointer
+	// // xmlRedact := &XmlRedact{Height: 5.5}
 
-	// var tempInt interface{}
-	// json.Unmarshal([]byte("{'RedactError':'Unimplemented Type'}"), &tempInt)
-	// fmt.Println(tempInt)
+	// redactedJson := Print(redactJson)
+	// fmt.Println(string(redactedJson))
 
-	redactedXml := PrintXML(xmlRedact)
-	fmt.Println(string(redactedXml))
+	accounts := []string{"1", "2", "3", "4"}
+	redactedSlice := RedactSlice(&accounts)
+	fmt.Println(string(redactedSlice))
+
+	// redactedXml := PrintXML(xmlRedact)
+	// fmt.Println(string(redactedXml))
 }
 
 // redact as json string
@@ -55,6 +52,7 @@ func Print(v interface{}) string {
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
+
 	//pass interface and identify type
 	switch val.Kind() {
 	case reflect.Struct:
@@ -129,15 +127,46 @@ func RedactionToJson(req interface{}) (redacted []byte) {
 			if fieldValue.CanSet() {
 				// Checks For String Kind
 				if fieldValue.Kind() == reflect.String && !fieldValue.IsZero() {
-					outputInstance.Field(i).Set(inputValue.Field(i))
+					outputInstance.Field(i).Set(fieldValue)
 					outputInstance.Field(i).SetString("******")
 					// Checks For Integer Kind
 				} else if fieldValue.Kind() == reflect.Int && !fieldValue.IsZero() {
-					outputInstance.Field(i).Set(inputValue.Field(i))
+					outputInstance.Field(i).Set(fieldValue)
 					outputInstance.Field(i).SetInt(00000)
 				} else if fieldValue.Kind() == reflect.Float32 && !fieldValue.IsZero() {
-					outputInstance.Field(i).Set(inputValue.Field(i))
+					outputInstance.Field(i).Set(fieldValue)
 					outputInstance.Field(i).SetFloat(00000)
+				} else if fieldValue.Kind() == reflect.Array || fieldValue.Kind() == reflect.Slice {
+					// New Instance Of Same Type
+					arrayInstance := reflect.New(fieldValue.Type()).Elem()
+					for i := 0; i < fieldValue.Len(); i++ {
+						arrValue := fieldValue.Field(i)
+						if !arrValue.IsValid() {
+							continue
+						}
+
+						if !arrValue.CanAddr() {
+							continue
+						}
+
+						if !arrValue.Addr().CanInterface() {
+							continue
+						}
+
+						if arrValue.Kind() == reflect.String && !arrValue.IsZero() {
+							arrayInstance.Field(i).Set(arrValue)
+							arrayInstance.Field(i).SetString("******")
+							// Checks For Integer Kind
+						} else if arrValue.Kind() == reflect.Int && !arrValue.IsZero() {
+							arrayInstance.Field(i).Set(arrValue)
+							arrayInstance.Field(i).SetInt(00000)
+						} else if arrValue.Kind() == reflect.Float32 && !arrValue.IsZero() {
+							arrayInstance.Field(i).Set(arrValue)
+							arrayInstance.Field(i).SetFloat(00000)
+						}
+					}
+					outputInstance.Field(i).Set(fieldValue)
+					outputInstance.Field(i).Set(arrayInstance)
 				} else {
 					continue
 				}
@@ -157,8 +186,6 @@ func RedactionToJson(req interface{}) (redacted []byte) {
 
 func RedactionToXml(req interface{}) (redacted []byte) {
 
-	// if target is not pointer, then immediately return
-	// modifying struct's field requires addressable object
 	addrValue := reflect.ValueOf(req)
 	if addrValue.Kind() != reflect.Ptr {
 		return []byte("struct type not a pointer, not addressable")
@@ -178,7 +205,6 @@ func RedactionToXml(req interface{}) (redacted []byte) {
 	// New Instance Of Same Type
 	outputInstance := reflect.New(inputType).Elem()
 
-	// Loops over the struct fields, finds the redact tags, redacts the values.
 	for i := 0; i < inputType.NumField(); i++ {
 		fieldType := inputType.Field(i)
 		fieldValue := inputValue.Field(i)
@@ -188,12 +214,10 @@ func RedactionToXml(req interface{}) (redacted []byte) {
 		}
 
 		if !fieldValue.CanAddr() {
-			// Cannot take pointer of this field, so can't scrub it.
 			continue
 		}
 
 		if !fieldValue.Addr().CanInterface() {
-			// This is an unexported or private field which begins with lowercase
 			continue
 		}
 
@@ -221,5 +245,88 @@ func RedactionToXml(req interface{}) (redacted []byte) {
 
 	redacted, _ = xml.Marshal(outputInstance.Interface())
 	// Returns the redacted string.
+	return redacted
+}
+
+func RedactSlice(req interface{}) (redacted []byte) {
+
+	addrValue := reflect.ValueOf(req)
+	if addrValue.Kind() != reflect.Ptr {
+		return
+	}
+
+	inputValue := addrValue.Elem()
+	if !inputValue.IsValid() {
+		return
+	}
+	fmt.Println(inputValue)
+
+	inputType := inputValue.Type()
+	fmt.Println(inputType)
+
+	var inputInstance []interface{}
+	if inputType.Kind() == reflect.Array || inputType.Kind() == reflect.Slice {
+		for i := 0; i < inputValue.Len(); i++ {
+			arrValue := inputValue.Index(i)
+			if !arrValue.IsValid() {
+				continue
+			}
+
+			if !arrValue.CanAddr() {
+				continue
+			}
+
+			if !arrValue.Addr().CanInterface() {
+				continue
+			}
+
+			target := arrValue.Addr().Interface()
+			fmt.Println(target)
+
+			fieldAddrValue := reflect.ValueOf(target)
+			if fieldAddrValue.Kind() != reflect.Ptr {
+				return
+			}
+			fmt.Println(fieldAddrValue)
+
+			fieldTargetValue := fieldAddrValue.Elem()
+			if !fieldTargetValue.IsValid() {
+				return
+			}
+			fmt.Println(fieldTargetValue)
+
+			fieldTargetType := fieldTargetValue.Type()
+			fmt.Println(fieldTargetType)
+
+			if fieldTargetType.Kind() == reflect.Ptr && !fieldTargetValue.IsNil() {
+				fieldTargetValue = fieldTargetValue.Elem()
+				if !fieldTargetValue.IsValid() {
+					return
+				}
+
+				fieldTargetType = fieldTargetValue.Type()
+			}
+			fmt.Println(fieldTargetValue)
+
+			fieldInstance := reflect.New(fieldTargetType).Elem()
+			if fieldTargetType.Kind() == reflect.String && !arrValue.IsZero() {
+				fieldInstance.Set(fieldTargetValue)
+				fieldInstance.SetString("******")
+				// Checks For Integer Kind
+			} else if fieldTargetType.Kind() == reflect.Int && !arrValue.IsZero() {
+				fieldInstance.Set(fieldTargetValue)
+				fieldInstance.SetInt(00000)
+			} else if fieldTargetType.Kind() == reflect.Float32 && !arrValue.IsZero() {
+				fieldInstance.Set(fieldTargetValue)
+				fieldInstance.SetFloat(00000)
+			}
+			inputInstance = append(inputInstance, fieldInstance.Interface())
+			fmt.Println(fieldInstance.Interface())
+			fmt.Println(inputInstance)
+		}
+	}
+
+	redacted, _ = json.Marshal(inputInstance)
+	fmt.Println(string(redacted))
 	return redacted
 }

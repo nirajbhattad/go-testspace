@@ -109,7 +109,7 @@ func TestMarshalJson() {
 // Copy over the values from original object and redact the fields with redact tag
 // Return the marshal of new object with redacted values
 
-uType := reflect.TypeOf(req).Elem()
+	uType := reflect.TypeOf(req).Elem()
 
 	var fields []reflect.StructField
 
