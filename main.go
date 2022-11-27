@@ -23,6 +23,7 @@ func main() {
 	goch.ClosestMatch()
 	goch.TestMarshalJson()
 	goch.DebugRedaction()
+	goch.DebugRecursion()
 
 	// Basics Section
 

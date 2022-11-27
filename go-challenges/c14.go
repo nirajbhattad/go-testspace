@@ -15,10 +15,12 @@ type JsonRedact struct {
 	Address    string `json:"address"`
 	AccountNum int    `json:"accountNum" redact:""`
 	Accounts   []int  `json:"accounts" redact:""`
+	Redacts    []XmlRedact
 }
 
 type XmlRedact struct {
 	Height float32 `redact:""`
+	Weight float32 `redact:""`
 }
 
 type RedactError struct {
@@ -77,7 +79,7 @@ func PrintXML(v interface{}) string {
 		return string(redacted)
 
 	default:
-		return fmt.Sprintf("<RedactError> Unimplemented Type< RedactError>")
+		return "<RedactError> Unimplemented Type< RedactError>"
 	}
 }
 
