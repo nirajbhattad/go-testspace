@@ -39,3 +39,39 @@ The first task is started using the go keyword, which creates a new goroutine an
 
 The second task is started synchronously, within the main function.
 
+
+# Parallelism
+
+Parallelism refers to the ability of a program or system to have multiple tasks executing simultaneously, typically by using multiple processors or cores. 
+
+In simple words, concurrency is about dealing with a lot of things at once, parallelism is about doing a lot of things at once.
+
+Here is an example of parallelism in Go:
+
+```go 
+
+package main
+
+import (
+    "fmt"
+    "sync"
+)
+
+func main() {
+    var wg sync.waitgroup
+    wg.Add(2)
+    go func(){
+      fmt.Println("First task done")
+      wg.Done()
+    }()
+    go func(){
+      fmt.Println("Second task done")
+      wg.Done()
+    }()
+    wg.Wait()
+} 
+```
+
+In this example, we are using WaitGroup to wait for the two goroutines to complete. 
+
+The two tasks are started using the go keyword, which creates new goroutines and runs the tasks in parallel.
