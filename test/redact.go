@@ -1,4 +1,4 @@
-package gochallenges
+package redact
 
 import (
 	"encoding/json"
@@ -8,9 +8,9 @@ import (
 )
 
 type RecursionRedact2 struct {
-	UserName        string           `json:"userName" `
-	Password        string           `json:"password" redact:""`
-	RecursionRedact RecursionRedact3 `json:"recursionRedact" redact:""`
+	userName         string           `json:"userName" redact:""`
+	Password         string           `json:"password" redact:""`
+	RecursionRedact3 RecursionRedact3 `json:"recursionRedact3" redact:""`
 }
 
 type RecursionRedact3 struct {
@@ -33,16 +33,35 @@ func DebugRecursion() {
 	}
 
 	redactJson := RecursionRedact2{
-		UserName:        "Niraj",
-		Password:        "Bhattad",
-		RecursionRedact: redactJson3,
+		userName:         "Niraj",
+		Password:         "Bhattad",
+		RecursionRedact3: redactJson3,
 	}
 
 	Redact(&redactJson)
 }
 
+func to_struct_ptr(obj interface{}) interface{} {
+
+	// Check if the value is pointer
+	reqAddrValue := reflect.ValueOf(obj)
+	if reqAddrValue.Kind() == reflect.Ptr {
+		return obj
+	} else {
+		// Create a new instance of the underlying type
+		vp := reflect.New(reflect.TypeOf(obj))
+
+		vp.Elem().Set(reflect.ValueOf(obj))
+
+		return vp.Interface()
+	}
+}
+
 // To keep a count of fields which have redact tag
-var RedactCount int
+var RedactFieldCount int
+
+// To keep a count of fields which have been redacted
+var RedactedFieldCount int
 
 func Redact(req interface{}) string {
 	if req == nil {
@@ -62,15 +81,25 @@ func Redact(req interface{}) string {
 	jsonRedaction, _ = json.Marshal(out)
 	fmt.Println(string(jsonRedaction))
 
-	if RedactCount > 0 && string(jsonRedaction) == "" {
-		return "{'RedactError':'Failed to redact the struct.'}"
+	if RedactFieldCount == 0 {
+		// Get back to original state
+		redact(out, &originalValues, false, false)
+
+		// Call zaputil 
+		return "No redact fields in the struct"
+	} else if RedactFieldCount > 0 && RedactedFieldCount != RedactFieldCount {
+		// Get back to original state
+		redact(out, &originalValues, false, false)
+
+		// Call zaputil
+		return "Failed to redact all the fields of the Struct"
+	} else {
+		// Get back to original state
+		redact(out, &originalValues, false, false)
+
+		// Returns
+		return string(jsonRedaction)
 	}
-
-	// Get back to original state
-	redact(out, &originalValues, false, false)
-
-	// Returns
-	return string(jsonRedaction)
 }
 
 func RedactXml(req interface{}) string {
@@ -78,26 +107,42 @@ func RedactXml(req interface{}) string {
 		return "<Redact><error>Empty request</error></Redact>"
 	}
 
+	out := to_struct_ptr(req)
+
 	// Declare original values slice
 	originalValues := make([]interface{}, 0)
 
 	// Redact the json
-	redact(req, &originalValues, true, false)
+	redact(out, &originalValues, true, false)
 
 	// Creates a xml redaction copy
 	var xmlRedaction []byte
 	xmlRedaction, _ = xml.Marshal(req)
+	fmt.Println(string(xmlRedaction))
 
-	if RedactCount > 0 && string(xmlRedaction) == "" {
-		return "<RedactError> Failed to redact the struct.<RedactError>"
+	if RedactFieldCount == 0 {
+		// Get back to original state
+		redact(out, &originalValues, false, false)
+
+		// Call zaputil
+
+		return "<Redact><error>No redact fields in the struct</error></Redact>"
+	} else if RedactFieldCount > 0 && RedactedFieldCount != RedactFieldCount {
+		// Get back to original state
+		redact(out, &originalValues, false, false)
+
+		// Call zaputil
+
+		return "<Redact><error>Failed to redact all the fields of the struct</error></Redact>"
+	} else {
+		// Get back to original state
+		redact(out, &originalValues, false, false)
+
+		// Returns
+		return string(xmlRedaction)
 	}
-
-	// Get back to original state
-	redact(req, &originalValues, false, false)
-
-	// Returns
-	return string(xmlRedaction)
 }
+
 
 func redact(req interface{}, originalValues *[]interface{}, save bool, isRedact bool) {
 
@@ -131,6 +176,12 @@ func redact(req interface{}, originalValues *[]interface{}, save bool, isRedact 
 		for i := 0; i < requestType.NumField(); i++ {
 			fieldType := requestType.Field(i)
 			fValue := inputValue.Field(i)
+
+			_, shouldRedact := fieldType.Tag.Lookup("redact")
+			if shouldRedact && save {
+				RedactFieldCount++
+			}
+
 			if !fValue.IsValid() {
 				continue
 			}
@@ -143,18 +194,15 @@ func redact(req interface{}, originalValues *[]interface{}, save bool, isRedact 
 			if !fValue.Addr().CanInterface() {
 				continue
 			}
-			_, shouldRedact := fieldType.Tag.Lookup("redact")
-			if shouldRedact {
-				RedactCount++
-			}
+
 			redact(fValue.Addr().Interface(), originalValues, save, shouldRedact)
 		}
 		return
 	}
 
 	if requestType.Kind() == reflect.Array || requestType.Kind() == reflect.Slice {
-		if isRedact {
-			RedactCount++
+		if isRedact && save {
+			RedactFieldCount++
 		}
 		for i := 0; i < inputValue.Len(); i++ {
 			arrValue := inputValue.Index(i)
@@ -167,7 +215,6 @@ func redact(req interface{}, originalValues *[]interface{}, save bool, isRedact 
 			}
 
 			if !arrValue.Addr().CanInterface() {
-
 				continue
 			}
 			redact(arrValue.Addr().Interface(), originalValues, save, isRedact)
@@ -181,6 +228,7 @@ func redact(req interface{}, originalValues *[]interface{}, save bool, isRedact 
 		if save {
 			*originalValues = append(*originalValues, inputValue.String())
 			if isRedact {
+				RedactedFieldCount++
 				inputValue.SetString("********")
 			}
 		} else {
@@ -191,6 +239,7 @@ func redact(req interface{}, originalValues *[]interface{}, save bool, isRedact 
 		if save {
 			*originalValues = append(*originalValues, inputValue.Int())
 			if isRedact {
+				RedactedFieldCount++
 				inputValue.SetInt(0)
 			}
 		} else {
@@ -202,6 +251,7 @@ func redact(req interface{}, originalValues *[]interface{}, save bool, isRedact 
 		if save {
 			*originalValues = append(*originalValues, inputValue.Int())
 			if isRedact {
+				RedactedFieldCount++
 				inputValue.SetInt(0)
 			}
 		} else {
@@ -213,6 +263,7 @@ func redact(req interface{}, originalValues *[]interface{}, save bool, isRedact 
 		if save {
 			*originalValues = append(*originalValues, inputValue.Int())
 			if isRedact {
+				RedactedFieldCount++
 				inputValue.SetInt(0)
 			}
 		} else {
@@ -223,6 +274,7 @@ func redact(req interface{}, originalValues *[]interface{}, save bool, isRedact 
 		if save {
 			*originalValues = append(*originalValues, inputValue.Float())
 			if isRedact {
+				RedactedFieldCount++
 				inputValue.SetFloat(0.0)
 			}
 		} else {
@@ -233,6 +285,7 @@ func redact(req interface{}, originalValues *[]interface{}, save bool, isRedact 
 		if save {
 			*originalValues = append(*originalValues, inputValue.Float())
 			if isRedact {
+				RedactedFieldCount++
 				inputValue.SetFloat(0.0)
 			}
 		} else {
@@ -241,14 +294,4 @@ func redact(req interface{}, originalValues *[]interface{}, save bool, isRedact 
 			*originalValues = (*originalValues)[1:]
 		}
 	}
-}
-
-func to_struct_ptr(obj interface{}) interface{} {
-
-	// Create a new instance of the underlying type
-	vp := reflect.New(reflect.TypeOf(obj))
-
-	vp.Elem().Set(reflect.ValueOf(obj))
-
-	return vp.Interface()
 }
