@@ -32,3 +32,10 @@ func secondTask() {
 }
 
 ```
+
+The example above starts two tasks: the firstTask and the secondTask. 
+
+The first task is started using the go keyword, which creates a new goroutine and runs the task concurrently with the main function. 
+
+The second task is started synchronously, within the main function.
+
